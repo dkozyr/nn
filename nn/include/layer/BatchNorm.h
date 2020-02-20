@@ -13,26 +13,26 @@ class BatchNorm : public Layer<T> {
     static constexpr float eps = 0.001f;
 
 public:
-	explicit BatchNorm(const size_t neurons, const std::string& name = "")
-		: Layer<T>(neurons, neurons, name)
+    explicit BatchNorm(const size_t neurons, const std::string& name = "")
+        : Layer<T>(neurons, neurons, name)
         , _xhat(Shape{kMaxBatch, neurons})
-		, _mean(Shape{1, neurons})
-		, _sigma(Shape{1, neurons})
-		, _gamma(Shape{1, neurons}, 1.0f)
-		, _beta(Shape{1, neurons})	{
-	}
+        , _mean(Shape{1, neurons})
+        , _sigma(Shape{1, neurons})
+        , _gamma(Shape{1, neurons}, 1.0f)
+        , _beta(Shape{1, neurons})    {
+    }
 
-	void Forward(const Matrix<T>& X) override final {
-		const auto& shape = X.GetShape();
-		const auto& N = shape.rows;
+    void Forward(const Matrix<T>& X) override final {
+        const auto& shape = X.GetShape();
+        const auto& N = shape.rows;
         const auto& neurons = this->_Y.GetShape().cols;
         if((neurons != shape.cols) || (N < 4)) {
-			throw "BatchNorm forward: wrong matrix shape";
-		}
+            throw "BatchNorm forward: wrong matrix shape";
+        }
 
-		this->_Y.Reshape(shape);
-		this->_dFdX.Reshape(shape);
-		this->_xhat.Reshape(shape);
+        this->_Y.Reshape(shape);
+        this->_dFdX.Reshape(shape);
+        this->_xhat.Reshape(shape);
         
         CalculateMean(X, N, neurons);
         CalculateStdDev(X, N, neurons);
@@ -43,16 +43,16 @@ public:
                 this->_Y(r, c) = this->_gamma[c] * this->_xhat(r, c) + this->_beta[c];
             }
         }
-	}
+    }
 
-	void Backprop(const Matrix<T>& X, const Matrix<T>& dFdY, float learning_rate) override final {
-		const auto& shape = X.GetShape();
-		const auto& N = shape.rows;
+    void Backprop(const Matrix<T>& X, const Matrix<T>& dFdY, float learning_rate) override final {
+        const auto& shape = X.GetShape();
+        const auto& N = shape.rows;
         const auto& neurons = this->_Y.GetShape().cols;
-		if((shape.cols != dFdY.GetShape().cols) || (shape.rows != dFdY.GetShape().rows) ||
-		   (shape.cols != this->_Y.GetShape().cols) || (shape.rows > this->_Y.GetShape().rows)) {
-			throw "BatchNorm backprop: wrong matrix shape";
-		}
+        if((shape.cols != dFdY.GetShape().cols) || (shape.rows != dFdY.GetShape().rows) ||
+           (shape.cols != this->_Y.GetShape().cols) || (shape.rows > this->_Y.GetShape().rows)) {
+            throw "BatchNorm backprop: wrong matrix shape";
+        }
 
         // def batchnorm_backward_alt(dout, cache):
         //     gamma, xhat, istd = cache
@@ -78,17 +78,17 @@ public:
             this->_gamma[c] -= delta * dFdGamma;
             this->_beta[c] -= delta * dFdBeta;
         }
-	}
+    }
 
-	void Save(std::fstream& file) const override final {
-		file.write(reinterpret_cast<const char*>(&_gamma), sizeof(float));
-		file.write(reinterpret_cast<const char*>(&_beta), sizeof(float));
-	}
+    void Save(std::fstream& file) const override final {
+        file.write(reinterpret_cast<const char*>(&_gamma), sizeof(float));
+        file.write(reinterpret_cast<const char*>(&_beta), sizeof(float));
+    }
 
-	void Load(std::fstream& file) override final {
-		file.read(reinterpret_cast<char*>(&_gamma), sizeof(float));
-		file.read(reinterpret_cast<char*>(&_beta), sizeof(float));
-	}
+    void Load(std::fstream& file) override final {
+        file.read(reinterpret_cast<char*>(&_gamma), sizeof(float));
+        file.read(reinterpret_cast<char*>(&_beta), sizeof(float));
+    }
 
 private:
     void CalculateMean(const Matrix<T>& X, const size_t N, const size_t neurons) {
@@ -116,7 +116,7 @@ private:
 
 private:
     Matrix<T> _xhat;
-	Matrix<T> _mean, _sigma;
+    Matrix<T> _mean, _sigma;
     Matrix<T> _gamma, _beta;
 };
 

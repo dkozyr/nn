@@ -40,7 +40,7 @@ void ReLu<Cuda>::Forward(const Matrix<Cuda>& X) {
 
     ReLuForwardImpl<<<num_of_blocks, block_size>>>
         (N, X.DeviceData(), this->_Y.DeviceData());
-	Exception::ThrowOnError("ReLu: cannot perform forward propagation");
+    Exception::ThrowOnError("ReLu: cannot perform forward propagation");
 }
 
 template <>

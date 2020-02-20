@@ -36,7 +36,7 @@ void Tanh<Cuda>::Forward(const Matrix<Cuda>& X) {
 
     TanhForwardImpl<<<num_of_blocks, block_size>>>
         (N, X.DeviceData(), this->_Y.DeviceData());
-	Exception::ThrowOnError("Tanh: cannot perform forward propagation");
+    Exception::ThrowOnError("Tanh: cannot perform forward propagation");
 }
 
 template <>

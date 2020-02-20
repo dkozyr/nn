@@ -59,7 +59,7 @@ void Dropout<Cuda>::Predict(const Matrix<Cuda>& X) {
     this->_dFdX.Reshape(shape);
 
     cudaMemcpy(this->_Y.DeviceData(), X.DeviceData(), N * sizeof(float), cudaMemcpyDeviceToDevice);
-	Exception::ThrowOnError("Dropout: cannot perform forward propagation");
+    Exception::ThrowOnError("Dropout: cannot perform forward propagation");
 }
 
 template <>

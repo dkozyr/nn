@@ -8,10 +8,10 @@ namespace cost {
 template <ExecutorType T = Cpu>
 class CrossEntropy : public Cost<T> {
 public:
-	explicit CrossEntropy(const size_t neurons, const std::string& name = "")
-		: Cost<T>(neurons, name) {}
+    explicit CrossEntropy(const size_t neurons, const std::string& name = "")
+        : Cost<T>(neurons, name) {}
 
-	void Evaluate(const Matrix<T>& Yh, const Matrix<T>& Y) override final {
+    void Evaluate(const Matrix<T>& Yh, const Matrix<T>& Y) override final {
         const auto& shape = Yh.GetShape();
         if((shape.rows != Y.GetShape().rows) || (Y.GetShape().cols != shape.cols)) {
             throw "CrossEntropy Evaluate: wrong shape size";
@@ -32,7 +32,7 @@ public:
         this->_loss.samples += shape.rows;
     }
 
-	float GetLoss() const override final {
+    float GetLoss() const override final {
         return this->_loss.value;
     }
 };

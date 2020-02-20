@@ -8,10 +8,10 @@ namespace cost {
 template <ExecutorType T = Cpu>
 class BinaryCrossEntropy : public Cost<T> {
 public:
-	explicit BinaryCrossEntropy(const std::string& name = "")
-		: Cost<T>(1, name) {}
+    explicit BinaryCrossEntropy(const std::string& name = "")
+        : Cost<T>(1, name) {}
 
-	void Evaluate(const Matrix<T>& Yh, const Matrix<T>& Y) override final {
+    void Evaluate(const Matrix<T>& Yh, const Matrix<T>& Y) override final {
         const auto& shape = Yh.GetShape();
         if((shape.rows != Y.GetShape().rows) || (Y.GetShape().cols != 1) || (shape.cols != 1)) {
             throw "BinaryCrossEntropy Evaluate: wrong shape size";
@@ -38,7 +38,7 @@ public:
         this->_loss.samples += N;
     }
 
-	float GetLoss() const override final {
+    float GetLoss() const override final {
         const auto& loss = this->_loss;
         return (loss.samples != 0) ? loss.value / loss.samples : 0;
     }

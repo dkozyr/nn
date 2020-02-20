@@ -18,7 +18,7 @@ class Network {
 public:
     Network() : _name("") {}
 
-	explicit Network(const std::string& name) : _name(name) {
+    explicit Network(const std::string& name) : _name(name) {
     }
 
     void AddLinearLayer(const size_t input, const size_t output, const std::string& name = "") {
@@ -162,7 +162,7 @@ private:
     }
 
 private:
-	const std::string _name;
+    const std::string _name;
     std::vector<std::shared_ptr<layer::Layer<T>>> _layers;
     std::shared_ptr<cost::Cost<T>> _cost;
 };

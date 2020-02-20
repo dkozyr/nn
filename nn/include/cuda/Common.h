@@ -13,25 +13,25 @@ constexpr auto kMatrixBlockSize = 16;
 
 class Exception : std::exception {
 public:
-	Exception(const char* message)
-	    : _message(message) {
-		std::cout << "CUDA exception: " << _message << std::endl;
-	}
+    Exception(const char* message)
+        : _message(message) {
+        std::cout << "CUDA exception: " << _message << std::endl;
+    }
 
-	virtual const char* what() const throw() {
-		return _message;
-	}
+    virtual const char* what() const throw() {
+        return _message;
+    }
 
-	static void ThrowOnError(const char* message) {
-		const cudaError_t error = cudaGetLastError();
-		if(error != cudaSuccess) {
-			std::cerr << error << ": " << message << std::endl;
-			throw Exception(message);
-		}
-	}
+    static void ThrowOnError(const char* message) {
+        const cudaError_t error = cudaGetLastError();
+        if(error != cudaSuccess) {
+            std::cerr << error << ": " << message << std::endl;
+            throw Exception(message);
+        }
+    }
 
 private:
-	const char* _message;
+    const char* _message;
 };
 
 #endif // USE_CUDA

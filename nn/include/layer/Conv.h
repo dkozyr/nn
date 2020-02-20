@@ -51,13 +51,13 @@ public:
         const auto layer_size = _input_shape.LayerSize();
         const auto row_size = _input_shape.RowSize();
         const Shape& conv = _conv_shape;
-		const Shape out_shape{_input_shape.rows - _conv_shape.rows + 1, _input_shape.cols - _conv_shape.cols + 1};
+        const Shape out_shape{_input_shape.rows - _conv_shape.rows + 1, _input_shape.cols - _conv_shape.cols + 1};
 
-		size_t x_offset = 0;
-		size_t y_offset = 0;
+        size_t x_offset = 0;
+        size_t y_offset = 0;
         for(size_t n = 0; n < N; ++n) {
-			auto x_layer_offset = x_offset;
-			auto y_layer_offset = y_offset;
+            auto x_layer_offset = x_offset;
+            auto y_layer_offset = y_offset;
             for(size_t layer = 0; layer < _input_shape.layers; ++layer) {
                 for(size_t r = 0; r + conv.rows <= _input_shape.rows; ++r) {
                     for(size_t c = 0; c + conv.cols <= _input_shape.cols; ++c) {
@@ -72,16 +72,16 @@ public:
                         }
                     }
                 }
-				x_layer_offset += _input_shape.LayerSize();
-				y_layer_offset += out_shape.LayerSize();
+                x_layer_offset += _input_shape.LayerSize();
+                y_layer_offset += out_shape.LayerSize();
             }
-			x_offset += x_shape.RowSize();
-			y_offset += y_shape.RowSize();
+            x_offset += x_shape.RowSize();
+            y_offset += y_shape.RowSize();
         }
 
         const float delta = learning_rate / N;
         for(size_t w = 0; w < conv.rows * conv.cols; ++w) {
-			this->_W[w] -= delta * this->_dFdW[w];
+            this->_W[w] -= delta * this->_dFdW[w];
         }
     }
 

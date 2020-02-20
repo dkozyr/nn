@@ -9,7 +9,7 @@ namespace nn {
 template <ExecutorType T = Cpu>
 class Matrix {
 public:
-	explicit Matrix(const Shape& shape)
+    explicit Matrix(const Shape& shape)
         : _max_size(shape.Size())
         , _shape(shape) {
         if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers != 1)) {
@@ -18,7 +18,7 @@ public:
         AllocateMemory(0);
     }
 
-	explicit Matrix(const Shape& shape, float value)
+    explicit Matrix(const Shape& shape, float value)
         : _max_size(shape.Size())
         , _shape(shape) {
         if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers != 1)) {
@@ -66,8 +66,8 @@ public:
         SetHostValue(0.0f);
     }
 
-	void CopyHostToDevice() const {}
-	void CopyDeviceToHost() const {}
+    void CopyHostToDevice() const {}
+    void CopyDeviceToHost() const {}
 
     template <ExecutorType TFrom>
     void CopyHostData(const Matrix<TFrom>& from) const {
@@ -90,19 +90,19 @@ public:
         }
     }
 
-	float& operator[](const size_t index) {
+    float& operator[](const size_t index) {
         return _data_host[index];
     }
 
-	const float& operator[](const size_t index) const {
+    const float& operator[](const size_t index) const {
         return _data_host[index];
     }
 
-	float& operator()(const size_t row, const size_t column) {
+    float& operator()(const size_t row, const size_t column) {
         return _data_host[row * _shape.cols + column];
     }
 
-	const float& operator()(const size_t row, const size_t column) const {
+    const float& operator()(const size_t row, const size_t column) const {
         return _data_host[row * _shape.cols + column];
     }
 
@@ -130,11 +130,11 @@ private:
         }
     }
 
-	void AllocateMemory(float value) {
+    void AllocateMemory(float value) {
         AllocateHostMemory(value);
     }
 
-	void AllocateHostMemory(float value) {
+    void AllocateHostMemory(float value) {
         const auto size = _shape.Size();
         _data_host = static_cast<float*>(malloc(size * sizeof(float)));
         _data_host_ptr = std::shared_ptr<float>(_data_host, [&](float* ptr){ free(ptr); });
@@ -146,12 +146,12 @@ private:
     }
 
 private:
-	const size_t _max_size;
-	Shape _shape;
+    const size_t _max_size;
+    Shape _shape;
 
-	float* _data_host = nullptr;
+    float* _data_host = nullptr;
     std::shared_ptr<float> _data_host_ptr = nullptr;
-	float* _data_device = nullptr;
+    float* _data_device = nullptr;
     std::shared_ptr<float> _data_device_ptr = nullptr;
 };
 

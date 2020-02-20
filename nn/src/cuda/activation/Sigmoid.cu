@@ -40,7 +40,7 @@ void Sigmoid<Cuda>::Forward(const Matrix<Cuda>& X) {
 
     SigmoidForwardImpl<<<num_of_blocks, block_size>>>
         (N, X.DeviceData(), this->_Y.DeviceData());
-	Exception::ThrowOnError("Sigmoid: cannot perform forward propagation");
+    Exception::ThrowOnError("Sigmoid: cannot perform forward propagation");
 }
 
 template <>

@@ -19,9 +19,9 @@ constexpr auto kMaxBatch = 4096;
 
 inline constexpr bool IsCudaEnabled() {
 #if USE_CUDA
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
