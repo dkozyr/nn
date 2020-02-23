@@ -21,10 +21,3 @@ set(CMAKE_CXX_FLAGS -pthread)
 add_subdirectory(nn)
 add_subdirectory(nn-test)
 add_subdirectory(example)
-
-# docker run --gpus all -it --rm -v $PWD:/home/dk -w /home/dk nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04 nvidia-smi
-# docker run --gpus all -it --rm -v $PWD:/home/dk -w /home/dk nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04 /bin/bash
-
-# docker run --gpus all -it --rm -v $PWD:/home/dk -w /home/dk cuda-dev /bin/bash
-
-# nn-test/nn-test --gtest_filter=*Mnist*

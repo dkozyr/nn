@@ -1,3 +1,2 @@
-#project(nn-test LANGUAGES CXX CUDA)
-
+add_subdirectory(cifar)
 add_subdirectory(mnist)
