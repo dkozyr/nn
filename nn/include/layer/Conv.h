@@ -14,8 +14,10 @@ public:
         : Layer<T>(input.Size(), CalcOutputNeurons(input, conv), name)
         , _input_shape(input)
         , _conv_shape(conv)
-        , _W(conv, static_cast<float>(1.0f / conv.Size()))
+        , _W(conv)
         , _dFdW(conv) {
+        _W.XavierNormal();
+        _W.CopyHostToDevice();
     }
 
     void Forward(const Matrix<T>& X) override final {
@@ -124,7 +126,7 @@ private:
                             value += this->_W(j, i) * X[conv_offset + j*row_size + i];
                         }
                     }
-                    Y[y_offset] += value;
+                    Y[y_offset] = value;
                     y_offset++;
                     conv_offset++;
                 }

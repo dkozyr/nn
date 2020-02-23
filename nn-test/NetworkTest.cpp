@@ -70,10 +70,10 @@ TEST_F(NetworkTest, Xor) {
     Y.CopyHostToDevice();
     
     Network<Cuda> net("Xor");
-    net.AddLinearLayer(2, 3);
+    net.AddLinearLayer(2, 4);
     net.AddTanh();
     net.AddDropout(0.1);
-    net.AddLinearLayer(3, 1);
+    net.AddLinearLayer(4, 1);
     net.AddSigmoid();
     net.AddBinaryCrossEntropy();
 
@@ -135,7 +135,7 @@ TEST_F(NetworkTest, Mnist) {
 
 TEST_F(NetworkTest, MnistConv) {
     if(!IsCudaEnabled()) {
-        return; // on CPU it takes ~17 min, GPU ~40 sec
+        return; // on CPU it takes ~17 min, GPU ~30 sec
     }
 
     auto X_train = ReadMnistImage<Cuda>("../data/mnist/train-images-idx3-ubyte");
@@ -169,6 +169,45 @@ TEST_F(NetworkTest, MnistConv) {
     const auto cv_acc = net.Accuracy(X_cv, Y_cv);
     cout << "Accuracy train: " << train_acc << ", CV: " << cv_acc << endl;
     ASSERT_GE(train_acc, 0.975);
+    ASSERT_GE(cv_acc, 0.97);
+}
+
+TEST_F(NetworkTest, MnistConv3D) {
+    if(!IsCudaEnabled()) {
+        return; // on CPU it takes ~17 min, GPU ~60 sec
+    }
+
+    auto X_train = ReadMnistImage<Cuda>("../data/mnist/train-images-idx3-ubyte");
+    auto Y_train = ReadMnistLabel<Cuda>("../data/mnist/train-labels-idx1-ubyte");
+
+    auto X_cv = ReadMnistImage<Cuda>("../data/mnist/t10k-images-idx3-ubyte");
+    auto Y_cv = ReadMnistLabel<Cuda>("../data/mnist/t10k-labels-idx1-ubyte");
+
+    Network<Cuda> net("mnist");
+    net.AddConv3D(Shape{28,28}, Shape{4,2,2});
+    net.AddReLu();
+    net.AddDropout(0.2);
+
+    net.AddLinearLayer(4*27*27, 100);
+    net.AddTanh();
+    net.AddDropout(0.1);
+
+    net.AddLinearLayer(100, 10);
+    net.AddSoftmax();
+    net.AddCrossEntropy(10);
+
+    const float learning_rate = 0.1;
+    for(size_t epoch = 1; epoch <= 10; ++epoch) {
+        const float loss = net.Train(X_train, Y_train, learning_rate, 16);
+        std::cout << "epoch: " << epoch << ", error: " << loss;
+        // std::cout << ", Accuracy train: " << net.Accuracy(X_train, Y_train);
+        // std::cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
+        std::cout << std::endl;
+    }
+    const auto train_acc = net.Accuracy(X_train, Y_train);
+    const auto cv_acc = net.Accuracy(X_cv, Y_cv);
+    cout << "Accuracy train: " << train_acc << ", CV: " << cv_acc << endl;
+    ASSERT_GE(train_acc, 0.98);
     ASSERT_GE(cv_acc, 0.97);
 }
 
