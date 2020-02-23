@@ -38,9 +38,9 @@ protected:
     }
 };
 
-TEST_F(CrossEntropyTest, BinaryCrossEntropy) {
+TEST_F(CrossEntropyTest, CrossEntropy) {
     for(auto begin = Clock::now(); Clock::now() - begin < 50ms; ) {
-        const auto rows = Rand(1, 4096);
+        const auto rows = Rand(1, kMaxBatch);
         const auto cols = Rand(1, 32);
         const auto prob = Rand(0.001f, 0.999f);
         const auto cost_cpu = TestCrossEntropy<Cpu>(rows, cols, prob);
@@ -49,9 +49,9 @@ TEST_F(CrossEntropyTest, BinaryCrossEntropy) {
     }
 }
 
-TEST_F(CrossEntropyTest, BinaryCrossEntropyDerivative) {
+TEST_F(CrossEntropyTest, CrossEntropyDerivative) {
     for(auto begin = Clock::now(); Clock::now() - begin < 50ms; ) {
-        const auto rows = Rand(1, 4096);
+        const auto rows = Rand(1, kMaxBatch);
         const auto cols = Rand(1, 32);
         const auto prob = Rand(0.001f, 0.999f);
         const auto dY_cpu = TestCrossEntropyGradient<Cpu>(rows, cols, prob);

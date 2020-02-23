@@ -15,7 +15,7 @@ enum ExecutorType {
     Cuda = 1
 };
 
-constexpr auto kMaxBatch = 4096;
+constexpr auto kMaxBatch = 256;
 
 inline constexpr bool IsCudaEnabled() {
 #if USE_CUDA

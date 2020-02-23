@@ -31,6 +31,8 @@ void Matrix<Cuda>::AllocateMemory(float value) {
 
     if(!_data_device_ptr) {
         cudaMalloc(&_data_device, _shape.Size() * sizeof(float));
+        // cout << "Matrix " << _shape.layers << "x" << _shape.rows << "x" << _shape.cols
+        //      << " -> size: " << _shape.Size() << endl;
         Exception::ThrowOnError("Matrix: Cannot allocate CUDA memory");
 
         _data_device_ptr = std::shared_ptr<float>(_data_device, [this](float* ptr){

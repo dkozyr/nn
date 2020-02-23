@@ -40,7 +40,7 @@ protected:
 
 TEST_F(BinaryCrossEntropyTest, BinaryCrossEntropy) {
     for(auto begin = Clock::now(); Clock::now() - begin < 50ms; ) {
-        const auto rows = Rand(1, 4096);
+        const auto rows = Rand(1, kMaxBatch);
         const auto prob = Rand(0.001f, 0.999f);
         const auto cost_cpu = TestBinaryCrossEntropy<Cpu>(rows, prob);
         const auto cost_cuda = TestBinaryCrossEntropy<Cuda>(rows, prob);
@@ -50,7 +50,7 @@ TEST_F(BinaryCrossEntropyTest, BinaryCrossEntropy) {
 
 TEST_F(BinaryCrossEntropyTest, BinaryCrossEntropyDerivative) {
     for(auto begin = Clock::now(); Clock::now() - begin < 50ms; ) {
-        const auto rows = Rand(1, 4096);
+        const auto rows = Rand(1, kMaxBatch);
         const auto prob = Rand(0.001f, 0.999f);
         const auto dY_cpu = TestBinaryCrossEntropyGradient<Cpu>(rows, prob);
         const auto dY_cuda = TestBinaryCrossEntropyGradient<Cuda>(rows, prob);

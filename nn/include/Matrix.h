@@ -12,7 +12,7 @@ public:
     explicit Matrix(const Shape& shape)
         : _max_size(shape.Size())
         , _shape(shape) {
-        if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers != 1)) {
+        if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers == 0)) {
             throw "Wrong matrix shape";
         }
         AllocateMemory(0);
@@ -21,7 +21,7 @@ public:
     explicit Matrix(const Shape& shape, float value)
         : _max_size(shape.Size())
         , _shape(shape) {
-        if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers != 1)) {
+        if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers == 0)) {
             throw "Wrong matrix shape";
         }
         AllocateMemory(value);
@@ -55,7 +55,7 @@ public:
     }
 
     void XavierNormal() {
-        const float sigma = sqrt(2.0f / (_shape.rows + _shape.cols));
+        const float sigma = sqrt(2.0f / (_shape.layers + _shape.rows + _shape.cols));
         const auto size = _shape.Size();
         for(size_t i = 0; i < size; ++i) {
             _data_host[i] = RandNormal(0.0, sigma);
@@ -72,7 +72,7 @@ public:
     template <ExecutorType TFrom>
     void CopyHostData(const Matrix<TFrom>& from) const {
         const auto& shape = from.GetShape();
-        if((_shape.rows != shape.rows) || (_shape.cols != shape.cols)) {
+        if((_shape.rows != shape.rows) || (_shape.cols != shape.cols) || (_shape.layers != shape.layers)) {
             throw "CopyHostData: wrong size";
         }
         memcpy(_data_host, from.HostData(), _shape.Size() * sizeof(float));
@@ -106,6 +106,14 @@ public:
         return _data_host[row * _shape.cols + column];
     }
 
+    float& operator()(const size_t layer, const size_t row, const size_t column) {
+        return _data_host[(layer * _shape.rows + row) * _shape.cols + column];
+    }
+
+    const float& operator()(const size_t layer, const size_t row, const size_t column) const {
+        return _data_host[(layer * _shape.rows + row) * _shape.cols + column];
+    }
+
     void Debug(size_t N = kMaxBatch) const {
         for(size_t r = 0; r < std::min(_shape.rows, N); ++r) {
             for(size_t c = 0; c < _shape.cols; ++c) {
@@ -125,7 +133,7 @@ private:
         , _shape(shape)
         , _data_host(data_host)
         , _data_device(data_device) {
-        if((_shape.rows == 0) || (_shape.cols == 0)) {
+        if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers == 0)) {
             throw "Wrong matrix shape";
         }
     }
