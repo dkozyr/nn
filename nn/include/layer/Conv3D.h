@@ -54,9 +54,6 @@ public:
         this->_dFdX.SetZeroValue();
         this->_dFdW.SetZeroValue();
 
-        // const auto layer_size = _input_shape.LayerSize();
-        // const auto row_size = _input_shape.RowSize();
-
         for(size_t n = 0; n < N; ++n) {
             for(size_t k = 0; k < out.layers; ++k) {
                 const auto w_offset = k * conv.Size();
@@ -79,11 +76,7 @@ public:
                         }
                     }
                 }
-				// x_layer_offset += _input_shape.LayerSize();
-				// y_layer_offset += out_shape.LayerSize();
             }
-			// x_offset += x_shape.RowSize();
-			// y_offset += y_shape.RowSize();
         }
 
         const float delta = learning_rate / N;
@@ -152,7 +145,7 @@ private:
     const Shape _input_shape;
     const Shape _output_shape;
     const Shape _conv_shape;
-    Matrix3D<T> _W, _dFdW; // TODO: Matrix4D, maybe Maatrix with flexible dimension size?
+    Matrix3D<T> _W, _dFdW;
 };
 
 } //namespace layer

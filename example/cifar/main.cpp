@@ -25,24 +25,20 @@ int main(int argc, char**argv) {
     Network<Cuda> net("cifar");
     net.AddConv3D(Shape{3,32,32}, Shape{32,2,2});
     net.AddReLu();
-    // net.AddTanh();
     // net.AddBatchNorm(); // doesn't work
     net.AddDropout(0.3);
 
     net.AddConv3D(Shape{32,31,31}, Shape{16,2,2});
     net.AddReLu();
-    // net.AddTanh();
     // net.AddBatchNorm(); // doesn't work
     net.AddDropout(0.1);
 
     net.AddConv3D(Shape{16,30,30}, Shape{4,2,2});
     net.AddReLu();
-    // net.AddTanh();
     // net.AddBatchNorm(); // doesn't work
     net.AddDropout(0.1);
 
     net.AddLinearLayer(4*29*29, 1024);
-    // net.AddReLu();
     net.AddTanh();
     // net.AddBatchNorm(); // doesn't work
     net.AddDropout(0.1);

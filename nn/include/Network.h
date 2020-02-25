@@ -125,23 +125,19 @@ public:
             const auto X_batch = X.GetSubMatrix(j, batch_size);
             const auto Y_batch = Y.GetSubMatrix(j, batch_size);
 
-            // cout << "Forward" << endl;
             Forward(X_batch);
 
             const auto N = X_batch.GetShape().rows;
             const auto& Yh = _layers.back()->GetOutput();
 
-            // cout << "Evaluate" << endl;
             _cost->Evaluate(Yh, Y_batch);
 
             for(int i = num_layers - 1; i >= 0; --i) {
-                // cout << "Backprop: " << i << endl;
                 const auto input = (i == 0) ? X_batch : _layers[i-1]->GetOutput();
                 const auto gradient = (i == num_layers - 1) ? _cost->GetGradient() : _layers[i + 1]->GetGradient();
                 _layers[i]->Backprop(input, gradient, learning_rate);
             }
         }
-        // cout << "loss: " << _cost->GetLoss()<< endl;
         return _cost->GetLoss();
     }
 
