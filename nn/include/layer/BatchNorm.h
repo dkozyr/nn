@@ -10,7 +10,7 @@ namespace layer {
 
 template <ExecutorType T = Cpu>
 class BatchNorm : public Layer<T> {
-    static constexpr float eps = 0.001f;
+    static constexpr float eps = 0.01f;
 
 public:
     explicit BatchNorm(const size_t neurons, const std::string& name = "")
@@ -39,8 +39,13 @@ public:
 
         for(size_t r = 0; r < N; ++r) {
             for(size_t c = 0; c < neurons; ++c) {
-                this->_xhat(r, c) = (X(r, c) - this->_mean[c]) / (this->_sigma[c] + eps);
-                this->_Y(r, c) = this->_gamma[c] * this->_xhat(r, c) + this->_beta[c];
+                if(this->_sigma[c] > eps) {
+                    this->_xhat(r, c) = (X(r, c) - this->_mean[c]) / this->_sigma[c];
+                    this->_Y(r, c) = this->_gamma[c] * this->_xhat(r, c) + this->_beta[c];
+                } else {
+                    this->_xhat(r, c) = 0;
+                    this->_Y(r, c) = this->_beta[c];
+                }
             }
         }
     }
@@ -81,13 +86,13 @@ public:
     }
 
     void Save(std::fstream& file) const override final {
-        file.write(reinterpret_cast<const char*>(&_gamma), sizeof(float));
-        file.write(reinterpret_cast<const char*>(&_beta), sizeof(float));
+        _gamma.Save(file);
+        _beta.Save(file);
     }
 
     void Load(std::fstream& file) override final {
-        file.read(reinterpret_cast<char*>(&_gamma), sizeof(float));
-        file.read(reinterpret_cast<char*>(&_beta), sizeof(float));
+        _gamma.Load(file);
+        _beta.Load(file);
     }
 
 private:
@@ -110,7 +115,7 @@ private:
                 const auto x_zero_mean = X(r, c) - this->_mean[c];
                 sigma2 += x_zero_mean * x_zero_mean;
             }
-            this->_sigma[c] = sqrt(factor * sigma2);
+            this->_sigma[c] = sqrt(factor * sigma2 + eps);
         }
     }
 

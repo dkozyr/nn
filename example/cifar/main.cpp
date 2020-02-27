@@ -9,7 +9,7 @@ void ReadCifarData(const std::string& path, Matrix<Cuda>& X, Matrix<Cuda>& Y, si
 inline std::string ReadFileToString(const std::string& path);
 
 int main(int argc, char**argv) {
-    cout << "Cuda is " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
+    cout << "Cuda: " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
 
     Matrix<Cuda> X_train(Shape{50000, 3*32*32}), Y_train(Shape{50000, 10});
     for(size_t i = 1; i <= 5; ++i) {
@@ -23,24 +23,24 @@ int main(int argc, char**argv) {
     cout << "CV images: " << X_cv.GetShape().rows << endl;
 
     Network<Cuda> net("cifar");
-    net.AddConv3D(Shape{3,32,32}, Shape{32,2,2});
+    net.AddConv3D(Shape{3,32,32}, Shape{8,2,2});
     net.AddReLu();
-    // net.AddBatchNorm(); // doesn't work
+    net.AddBatchNorm();
     net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{32,31,31}, Shape{16,2,2});
+    net.AddConv3D(Shape{8,31,31}, Shape{6,2,2});
     net.AddReLu();
-    // net.AddBatchNorm(); // doesn't work
+    net.AddBatchNorm();
     net.AddDropout(0.1);
 
-    net.AddConv3D(Shape{16,30,30}, Shape{4,2,2});
+    net.AddConv3D(Shape{6,30,30}, Shape{4,2,2});
     net.AddReLu();
-    // net.AddBatchNorm(); // doesn't work
+    net.AddBatchNorm();
     net.AddDropout(0.1);
 
     net.AddLinearLayer(4*29*29, 1024);
     net.AddTanh();
-    // net.AddBatchNorm(); // doesn't work
+    net.AddBatchNorm();
     net.AddDropout(0.1);
 
     net.AddLinearLayer(1024, 256);
@@ -52,8 +52,8 @@ int main(int argc, char**argv) {
     net.AddCrossEntropy(10);
 
     const float learning_rate = 0.1;
-    for(size_t epoch = 1; epoch <= 5*100; ++epoch) {
-        const float loss = net.Train(X_train, Y_train, learning_rate, 16);
+    for(size_t epoch = 1; epoch <= 100; ++epoch) {
+        const float loss = net.Train(X_train, Y_train, learning_rate, 32);
         cout << "epoch: " << epoch << ", error: " << loss;
         if(epoch % 10 == 0) {
             cout << ", Accuracy train: " << net.Accuracy(X_train, Y_train);

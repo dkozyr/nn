@@ -10,9 +10,17 @@ __global__ void BatchNormForwardImpl(const int N, const int neurons, const float
                                      const float* gamma, const float* beta, float* xhat, float* Y) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if(i < neurons) {
-        for(int n = 0, offset = i; n < N; ++n, offset += neurons) {
-            xhat[offset] = (X[offset] - mean[i]) / (sigma[i] + 0.001f);
-            Y[offset] = gamma[i] * xhat[offset] + beta[i];
+        if(sigma[i] > 0.001f) {
+            const float factor = 1.0f / sigma[i];
+            for(int n = 0, offset = i; n < N; ++n, offset += neurons) {
+                xhat[offset] = (X[offset] - mean[i]) * factor;
+                Y[offset] = gamma[i] * xhat[offset] + beta[i];
+            }
+        } else {
+            for(int n = 0, offset = i; n < N; ++n, offset += neurons) {
+                xhat[offset] = 0;
+                Y[offset] = beta[i];
+            }
         }
     }
 }
@@ -57,7 +65,7 @@ __global__ void CalculateStdDevImpl(const int N, const int neurons, const float*
             const auto x_zero_mean = X[offset] - mean[i];
             sigma2 += x_zero_mean * x_zero_mean;
         }
-        sigma[i] = sqrt(sigma2 / N);
+        sigma[i] = sqrt(sigma2 / N + 0.01f);
     }
 }
 

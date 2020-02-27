@@ -90,6 +90,16 @@ public:
         }
     }
 
+    void Save(std::fstream& file) const {
+        CopyDeviceToHost();
+        file.write(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(float));
+    }
+
+    void Load(std::fstream& file) {
+        file.read(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(float));
+        CopyHostToDevice();
+    }
+
     float& operator[](const size_t index) {
         return _data_host[index];
     }
