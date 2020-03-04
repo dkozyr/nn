@@ -17,37 +17,18 @@ public:
         : Layer<T>(neurons, neurons, name)
         , _xhat(Shape{kMaxBatch, neurons})
         , _mean(Shape{1, neurons})
+        , _sigma2(Shape{1, neurons})
         , _sigma(Shape{1, neurons})
         , _gamma(Shape{1, neurons}, 1.0f)
         , _beta(Shape{1, neurons})    {
     }
 
+    void Predict(const Matrix<T>& X) override final {
+        Forward(X, true);
+    }
+
     void Forward(const Matrix<T>& X) override final {
-        const auto& shape = X.GetShape();
-        const auto& N = shape.rows;
-        const auto& neurons = this->_Y.GetShape().cols;
-        if((neurons != shape.cols) || (N < 4)) {
-            throw "BatchNorm forward: wrong matrix shape";
-        }
-
-        this->_Y.Reshape(shape);
-        this->_dFdX.Reshape(shape);
-        this->_xhat.Reshape(shape);
-        
-        CalculateMean(X, N, neurons);
-        CalculateStdDev(X, N, neurons);
-
-        for(size_t r = 0; r < N; ++r) {
-            for(size_t c = 0; c < neurons; ++c) {
-                if(this->_sigma[c] > eps) {
-                    this->_xhat(r, c) = (X(r, c) - this->_mean[c]) / this->_sigma[c];
-                    this->_Y(r, c) = this->_gamma[c] * this->_xhat(r, c) + this->_beta[c];
-                } else {
-                    this->_xhat(r, c) = 0;
-                    this->_Y(r, c) = this->_beta[c];
-                }
-            }
-        }
+        Forward(X, false);
     }
 
     void Backprop(const Matrix<T>& X, const Matrix<T>& dFdY, float learning_rate) override final {
@@ -96,6 +77,36 @@ public:
     }
 
 private:
+    void Forward(const Matrix<T>& X, bool freeze) {
+        const auto& shape = X.GetShape();
+        const auto& N = shape.rows;
+        const auto& neurons = this->_Y.GetShape().cols;
+        if((neurons != shape.cols) || (N < 4)) {
+            throw "BatchNorm forward: wrong matrix shape";
+        }
+
+        this->_Y.Reshape(shape);
+        this->_dFdX.Reshape(shape);
+        this->_xhat.Reshape(shape);
+
+        if(!freeze) {
+            CalculateMean(X, N, neurons);
+            CalculateStdDev(X, N, neurons);
+        }
+
+        for(size_t r = 0; r < N; ++r) {
+            for(size_t c = 0; c < neurons; ++c) {
+                if(this->_sigma[c] > eps) {
+                    this->_xhat(r, c) = (X(r, c) - this->_mean[c]) / this->_sigma[c];
+                    this->_Y(r, c) = this->_gamma[c] * this->_xhat(r, c) + this->_beta[c];
+                } else {
+                    this->_xhat(r, c) = 0;
+                    this->_Y(r, c) = this->_beta[c];
+                }
+            }
+        }
+    }
+
     void CalculateMean(const Matrix<T>& X, const size_t N, const size_t neurons) {
         const float factor = 1.0f / N;
         for(size_t c = 0; c < neurons; ++c) {
@@ -115,13 +126,13 @@ private:
                 const auto x_zero_mean = X(r, c) - this->_mean[c];
                 sigma2 += x_zero_mean * x_zero_mean;
             }
-            this->_sigma[c] = sqrt(factor * sigma2 + eps);
+            this->_sigma[c] = sqrt(factor * sigma2);
         }
     }
 
 private:
     Matrix<T> _xhat;
-    Matrix<T> _mean, _sigma;
+    Matrix<T> _mean, _sigma2, _sigma;
     Matrix<T> _gamma, _beta;
 };
 

@@ -53,24 +53,25 @@ __global__ void CalculateMeanImpl(const int N, const int neurons, const float* X
         for(int n = 0, offset = i; n < N; ++n, offset += neurons) {
             m += X[offset];
         }
-        mean[i] = m / N;
+        mean[i] = 0.99 * mean[i] + 0.01 * (m / N);
     }
 }
 
-__global__ void CalculateStdDevImpl(const int N, const int neurons, const float* X, const float* mean, float* sigma) {
+__global__ void CalculateStdDevImpl(const int N, const int neurons, const float* X, const float* mean, float* sigma2, float* sigma) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if(i < neurons) {
-        float sigma2 = 0.0f;
+        float value = 0.0f;
         for(int n = 0, offset = i; n < N; ++n, offset += neurons) {
             const auto x_zero_mean = X[offset] - mean[i];
-            sigma2 += x_zero_mean * x_zero_mean;
+            value += x_zero_mean * x_zero_mean;
         }
-        sigma[i] = sqrt(sigma2 / N + 0.01f);
+        sigma2[i] = 0.99 * sigma2[i] + 0.01 * value / N;
+        sigma[i] = sqrt(sigma2[i] + 0.1f);
     }
 }
 
 template <>
-void BatchNorm<Cuda>::Forward(const Matrix<Cuda>& X) {
+void BatchNorm<Cuda>::Forward(const Matrix<Cuda>& X, bool freeze) {
     const auto& shape = X.GetShape();
     if((this->_Y.GetShape().cols != shape.cols)) {
         throw Exception("BatchNorm forward: wrong matrix shape");
@@ -85,13 +86,15 @@ void BatchNorm<Cuda>::Forward(const Matrix<Cuda>& X) {
     dim3 block_size(kVectorBlockSize);
     dim3 num_of_blocks((neurons + block_size.x - 1) / block_size.x);
 
-    CalculateMeanImpl<<<num_of_blocks, block_size>>>
-        (N, neurons, X.DeviceData(), this->_mean.DeviceData());
-    Exception::ThrowOnError("BatchNorm: cannot calculate Mean values");
+    if(!freeze) {
+        CalculateMeanImpl<<<num_of_blocks, block_size>>>
+            (N, neurons, X.DeviceData(), this->_mean.DeviceData());
+        Exception::ThrowOnError("BatchNorm: cannot calculate Mean values");
 
-    CalculateStdDevImpl<<<num_of_blocks, block_size>>>
-        (N, neurons, X.DeviceData(), this->_mean.DeviceData(), this->_sigma.DeviceData());
-    Exception::ThrowOnError("BatchNorm: cannot calculate StdDev values");
+        CalculateStdDevImpl<<<num_of_blocks, block_size>>>
+            (N, neurons, X.DeviceData(), this->_mean.DeviceData(), this->_sigma2.DeviceData(), this->_sigma.DeviceData());
+        Exception::ThrowOnError("BatchNorm: cannot calculate StdDev values");
+    }
 
     BatchNormForwardImpl<<<num_of_blocks, block_size>>>
         (N, neurons, X.DeviceData(), this->_mean.DeviceData(), this->_sigma.DeviceData(),

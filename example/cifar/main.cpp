@@ -23,27 +23,27 @@ int main(int argc, char**argv) {
     cout << "CV images: " << X_cv.GetShape().rows << endl;
 
     Network<Cuda> net("cifar");
-    net.AddConv3D(Shape{3,32,32}, Shape{8,2,2});
+    net.AddConv3D(Shape{3,32,32}, Shape{32,2,2});
     net.AddReLu();
     net.AddBatchNorm();
     net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{8,31,31}, Shape{6,2,2});
+    net.AddConv3D(Shape{32,31,31}, Shape{16,2,2});
     net.AddReLu();
     net.AddBatchNorm();
-    net.AddDropout(0.1);
+    net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{6,30,30}, Shape{4,2,2});
+    net.AddConv3D(Shape{16,30,30}, Shape{4,2,2});
     net.AddReLu();
     net.AddBatchNorm();
-    net.AddDropout(0.1);
+    net.AddDropout(0.2);
 
-    net.AddLinearLayer(4*29*29, 1024);
+    net.AddLinearLayer(4*29*29, 256);
     net.AddTanh();
     net.AddBatchNorm();
     net.AddDropout(0.1);
 
-    net.AddLinearLayer(1024, 256);
+    net.AddLinearLayer(256, 256);
     net.AddTanh();
     net.AddDropout(0.1);
 
@@ -52,14 +52,19 @@ int main(int argc, char**argv) {
     net.AddCrossEntropy(10);
 
     const float learning_rate = 0.1;
-    for(size_t epoch = 1; epoch <= 100; ++epoch) {
-        const float loss = net.Train(X_train, Y_train, learning_rate, 32);
+    size_t batch = 256;
+    for(size_t epoch = 1; epoch <= 50; ++epoch) {
+        const float loss = net.Train(X_train, Y_train, learning_rate, batch);
         cout << "epoch: " << epoch << ", error: " << loss;
         if(epoch % 10 == 0) {
             cout << ", Accuracy train: " << net.Accuracy(X_train, Y_train);
             cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
         }
         cout << endl;
+
+        if(batch > 16) {
+            batch /= 2;
+        }
     }
     cout << "Accuracy train: " << net.Accuracy(X_train, Y_train)
          << ", CV: " << net.Accuracy(X_cv, Y_cv)
