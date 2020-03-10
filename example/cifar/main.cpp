@@ -25,22 +25,18 @@ int main(int argc, char**argv) {
     Network<Cuda> net("cifar");
     net.AddConv3D(Shape{3,32,32}, Shape{32,2,2});
     net.AddReLu();
+    net.AddMaxPool(Shape{32,31,31}, Shape{2,2}, 1);
     net.AddBatchNorm();
     net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{32,31,31}, Shape{16,2,2});
+    net.AddConv3D(Shape{64,30,30}, Shape{64,2,2});
     net.AddReLu();
-    net.AddBatchNorm();
-    net.AddDropout(0.3);
-
-    net.AddConv3D(Shape{16,30,30}, Shape{4,2,2});
-    net.AddReLu();
+    net.AddMaxPool(Shape{64,29,29}, Shape{2,2}, 1);
     net.AddBatchNorm();
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(4*29*29, 256);
+    net.AddLinearLayer(64*28*28, 256);
     net.AddTanh();
-    net.AddBatchNorm();
     net.AddDropout(0.1);
 
     net.AddLinearLayer(256, 256);
@@ -62,9 +58,9 @@ int main(int argc, char**argv) {
         }
         cout << endl;
 
-        if(batch > 16) {
-            batch /= 2;
-        }
+        // if(batch > 16) {
+        //     batch /= 2;
+        // }
     }
     cout << "Accuracy train: " << net.Accuracy(X_train, Y_train)
          << ", CV: " << net.Accuracy(X_cv, Y_cv)

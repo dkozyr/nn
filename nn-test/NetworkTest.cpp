@@ -186,9 +186,10 @@ TEST_F(NetworkTest, MnistConv3D) {
     Network<Cuda> net("mnist");
     net.AddConv3D(Shape{28,28}, Shape{4,2,2});
     net.AddReLu();
+    net.AddMaxPool(Shape{4,27,27}, Shape{2,2}, 1);
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(4*27*27, 100);
+    net.AddLinearLayer(4*26*26, 100);
     net.AddTanh();
     net.AddDropout(0.1);
 

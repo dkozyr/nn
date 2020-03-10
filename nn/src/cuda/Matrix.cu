@@ -6,7 +6,7 @@
 namespace nn {
 
 template <>
-void Matrix<Cuda>::CopyHostToDevice() const {
+void Matrix<Cuda, float>::CopyHostToDevice() const {
     if(!_data_device_ptr || !_data_host_ptr) {
         throw Exception("Cannot copy data: memory isn't allocated");
     } else {
@@ -16,7 +16,17 @@ void Matrix<Cuda>::CopyHostToDevice() const {
 }
 
 template <>
-void Matrix<Cuda>::CopyDeviceToHost() const {
+void Matrix<Cuda, uint32_t>::CopyHostToDevice() const {
+    if(!_data_device_ptr || !_data_host_ptr) {
+        throw Exception("Cannot copy data: memory isn't allocated");
+    } else {
+        cudaMemcpy(_data_device_ptr.get(), _data_host_ptr.get(), _shape.Size() * sizeof(uint32_t), cudaMemcpyHostToDevice);
+        Exception::ThrowOnError("Cannot copy data from host to CUDA device");
+    }
+}
+
+template <>
+void Matrix<Cuda, float>::CopyDeviceToHost() const {
     if(!_data_device_ptr || !_data_host_ptr) {
         throw Exception("Cannot copy data: memory isn't allocated");
     } else {
@@ -26,13 +36,20 @@ void Matrix<Cuda>::CopyDeviceToHost() const {
 }
 
 template <>
-void Matrix<Cuda>::AllocateMemory(float value) {
-    AllocateHostMemory(value);
+void Matrix<Cuda, uint32_t>::CopyDeviceToHost() const {
+    if(!_data_device_ptr || !_data_host_ptr) {
+        throw Exception("Cannot copy data: memory isn't allocated");
+    } else {
+        cudaMemcpy(_data_host_ptr.get(), _data_device_ptr.get(), _shape.Size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+        Exception::ThrowOnError("Cannot copy data from CUDA device to host");
+    }
+}
 
+template <>
+void Matrix<Cuda, float>::AllocateMemory(float value) {
+    AllocateHostMemory(value);
     if(!_data_device_ptr) {
         cudaMalloc(&_data_device, _shape.Size() * sizeof(float));
-        // cout << "Matrix " << _shape.layers << "x" << _shape.rows << "x" << _shape.cols
-        //      << " -> size: " << _shape.Size() << endl;
         Exception::ThrowOnError("Matrix: Cannot allocate CUDA memory");
 
         _data_device_ptr = std::shared_ptr<float>(_data_device, [this](float* ptr){
@@ -44,14 +61,34 @@ void Matrix<Cuda>::AllocateMemory(float value) {
 }
 
 template <>
-void Matrix<Cuda>::SetZeroValue() {
-    cudaMemset(_data_device, 0, _shape.Size() * sizeof(int));
+void Matrix<Cuda, uint32_t>::AllocateMemory(uint32_t value) {
+    AllocateHostMemory(value);
+    if(!_data_device_ptr) {
+        cudaMalloc(&_data_device, _shape.Size() * sizeof(uint32_t));
+        Exception::ThrowOnError("Matrix: Cannot allocate CUDA memory");
+
+        _data_device_ptr = std::shared_ptr<uint32_t>(_data_device, [this](uint32_t* ptr){
+            cudaFree(ptr);
+        });
+
+        CopyHostToDevice();
+    }
+}
+
+template <>
+void Matrix<Cuda, float>::SetZeroValue() {
+    cudaMemset(_data_device, 0, _shape.Size() * sizeof(float));
     Exception::ThrowOnError("Matrix: Cannot SetValue on CUDA");
 }
 
+template <>
+void Matrix<Cuda, uint32_t>::SetZeroValue() {
+    cudaMemset(_data_device, 0, _shape.Size() * sizeof(uint32_t));
+    Exception::ThrowOnError("Matrix: Cannot SetValue on CUDA");
+}
 
 template <>
-void Matrix<Cuda>::DebugDevice(size_t max_rows) const {
+void Matrix<Cuda, float>::DebugDevice(size_t max_rows) const {
     if(_data_device) {
         cudaMemcpy(_data_host, _data_device, _shape.Size() * sizeof(float), cudaMemcpyDeviceToHost);
 

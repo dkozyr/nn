@@ -21,11 +21,18 @@ int main(int argc, char**argv) {
     cout << "CV images: " << X_cv.GetShape().rows << endl;
 
     Network<Cuda> net("mnist");
-    net.AddConv(Shape{28,28}, Shape{2,2});
+
+    net.AddConv3D(Shape{28,28}, Shape{8,2,2});
     net.AddReLu();
+    net.AddMaxPool(Shape{8,27,27}, Shape{2,2}, 1);
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(27*27, 512);
+    net.AddConv3D(Shape{8,26,26}, Shape{4,2,2});
+    net.AddReLu();
+    net.AddMaxPool(Shape{4,25,25}, Shape{2,2}, 1);
+    net.AddDropout(0.2);
+
+    net.AddLinearLayer(4*24*24, 512);
     net.AddTanh();
     net.AddDropout(0.1);
 
@@ -37,8 +44,10 @@ int main(int argc, char**argv) {
     for(size_t epoch = 1; epoch <= 100; ++epoch) {
         const float loss = net.Train(X_train, Y_train, learning_rate, 16);
         cout << "epoch: " << epoch << ", error: " << loss;
-        // cout << ", Accuracy train: " << net.Accuracy(X_train, Y_train);
-        // cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
+        if(epoch % 10 == 0) {
+            cout << ", Accuracy train: " << net.Accuracy(X_train, Y_train);
+            cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
+        }
         cout << endl;
     }
     cout << "Accuracy: " << net.Accuracy(X_train, Y_train)

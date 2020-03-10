@@ -5,6 +5,7 @@
 #include "layer/Conv3D.h"
 #include "layer/Dropout.h"
 #include "layer/BatchNorm.h"
+#include "layer/MaxPool.h"
 #include "activation/ReLu.h"
 #include "activation/Sigmoid.h"
 #include "activation/Tanh.h"
@@ -54,6 +55,11 @@ public:
     void AddBatchNorm(const std::string& name = "") {
         const auto neurons = _layers.back()->GetOutNeurons();
         _layers.emplace_back(new layer::BatchNorm<T>(neurons, name));
+    }
+
+    void AddMaxPool(const Shape& input, const Shape& window, const size_t stride, const std::string& name = "") {
+        const auto neurons = _layers.back()->GetOutNeurons();
+        _layers.emplace_back(new layer::MaxPool<T>(input, window, stride, name));
     }
 
     void AddConv(const Shape& input, const Shape& conv, const std::string& name = "") {

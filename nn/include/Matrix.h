@@ -6,7 +6,7 @@
 
 namespace nn {
 
-template <ExecutorType T = Cpu>
+template <ExecutorType T = Cpu, typename Tvalue = float>
 class Matrix {
 public:
     explicit Matrix(const Shape& shape)
@@ -18,7 +18,7 @@ public:
         AllocateMemory(0);
     }
 
-    explicit Matrix(const Shape& shape, float value)
+    explicit Matrix(const Shape& shape, Tvalue value)
         : _max_size(shape.Size())
         , _shape(shape) {
         if((_shape.rows == 0) || (_shape.cols == 0) || (_shape.layers == 0)) {
@@ -55,15 +55,18 @@ public:
     }
 
     void XavierNormal() {
-        const float sigma = sqrt(2.0f / (_shape.layers + _shape.rows + _shape.cols));
-        const auto size = _shape.Size();
-        for(size_t i = 0; i < size; ++i) {
-            _data_host[i] = RandNormal(0.0, sigma);
+        static_assert(std::is_floating_point<Tvalue>::value);  // TODO: remove it or remove std::is_floating_point_v
+        if(std::is_floating_point<Tvalue>::value) {
+            const float sigma = sqrt(2.0f / (_shape.layers + _shape.rows + _shape.cols));
+            const auto size = _shape.Size();
+            for(size_t i = 0; i < size; ++i) {
+                _data_host[i] = RandNormal(0.0, sigma);
+            }
         }
     }
 
     void SetZeroValue() {
-        SetHostValue(0.0f);
+        SetHostValue(Tvalue(0));
     }
 
     void CopyHostToDevice() const {}
@@ -75,14 +78,14 @@ public:
         if((_shape.rows != shape.rows) || (_shape.cols != shape.cols) || (_shape.layers != shape.layers)) {
             throw "CopyHostData: wrong size";
         }
-        memcpy(_data_host, from.HostData(), _shape.Size() * sizeof(float));
+        memcpy(_data_host, from.HostData(), _shape.Size() * sizeof(Tvalue));
     }
 
-    float* HostData() const {
+    Tvalue* HostData() const {
         return _data_host;
     }
 
-    float* DeviceData() const {
+    Tvalue* DeviceData() const {
         if(_data_device) {
             return _data_device;
         } else {
@@ -92,35 +95,35 @@ public:
 
     void Save(std::fstream& file) const {
         CopyDeviceToHost();
-        file.write(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(float));
+        file.write(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(Tvalue));
     }
 
     void Load(std::fstream& file) {
-        file.read(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(float));
+        file.read(reinterpret_cast<char*>(HostData()), _shape.Size() * sizeof(Tvalue));
         CopyHostToDevice();
     }
 
-    float& operator[](const size_t index) {
+    Tvalue& operator[](const size_t index) {
         return _data_host[index];
     }
 
-    const float& operator[](const size_t index) const {
+    const Tvalue& operator[](const size_t index) const {
         return _data_host[index];
     }
 
-    float& operator()(const size_t row, const size_t column) {
+    Tvalue& operator()(const size_t row, const size_t column) {
         return _data_host[row * _shape.cols + column];
     }
 
-    const float& operator()(const size_t row, const size_t column) const {
+    const Tvalue& operator()(const size_t row, const size_t column) const {
         return _data_host[row * _shape.cols + column];
     }
 
-    float& operator()(const size_t layer, const size_t row, const size_t column) {
+    Tvalue& operator()(const size_t layer, const size_t row, const size_t column) {
         return _data_host[(layer * _shape.rows + row) * _shape.cols + column];
     }
 
-    const float& operator()(const size_t layer, const size_t row, const size_t column) const {
+    const Tvalue& operator()(const size_t layer, const size_t row, const size_t column) const {
         return _data_host[(layer * _shape.rows + row) * _shape.cols + column];
     }
 
@@ -138,7 +141,7 @@ public:
     }
 
 private:
-    explicit Matrix(const Shape& shape, float* data_host, float* data_device)
+    explicit Matrix(const Shape& shape, Tvalue* data_host, Tvalue* data_device)
         : _max_size(shape.Size())
         , _shape(shape)
         , _data_host(data_host)
@@ -148,18 +151,18 @@ private:
         }
     }
 
-    void AllocateMemory(float value) {
+    void AllocateMemory(Tvalue value) {
         AllocateHostMemory(value);
     }
 
-    void AllocateHostMemory(float value) {
+    void AllocateHostMemory(Tvalue value) {
         const auto size = _shape.Size();
-        _data_host = static_cast<float*>(malloc(size * sizeof(float)));
-        _data_host_ptr = std::shared_ptr<float>(_data_host, [&](float* ptr){ free(ptr); });
+        _data_host = static_cast<Tvalue*>(malloc(size * sizeof(Tvalue)));
+        _data_host_ptr = std::shared_ptr<Tvalue>(_data_host, [&](Tvalue* ptr){ free(ptr); });
         SetHostValue(value);
     }
 
-    void SetHostValue(const float value) {
+    void SetHostValue(const Tvalue value) {
         std::fill_n(_data_host, _shape.Size(), value);
     }
 
@@ -167,10 +170,10 @@ private:
     const size_t _max_size;
     Shape _shape;
 
-    float* _data_host = nullptr;
-    std::shared_ptr<float> _data_host_ptr = nullptr;
-    float* _data_device = nullptr;
-    std::shared_ptr<float> _data_device_ptr = nullptr;
+    Tvalue* _data_host = nullptr;
+    std::shared_ptr<Tvalue> _data_host_ptr = nullptr;
+    Tvalue* _data_device = nullptr;
+    std::shared_ptr<Tvalue> _data_device_ptr = nullptr;
 };
 
 } //namespace nn
