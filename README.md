@@ -14,9 +14,7 @@ TODO:
 - adam optimizer
 - cifar-100
 
-Your comments are welcome.
-
-# Build project (Linux / Docker contanier)
+## Build project (Linux / Docker contanier)
 
 ```
 cd build
@@ -24,13 +22,13 @@ cmake -DUSE_CUDA=ON ..
 cmake --build . -- -j 4
 ```
 
-# Download MNIST and CIFAR data
+## Download MNIST and CIFAR data
 
 ```
 bash ./download.sh
 ```
 
-# MNIST example
+## MNIST example
 
 Convolutional neural network architecture:
 ```
@@ -57,7 +55,7 @@ net.AddCrossEntropy(10);
 
 Network trains 20 epochs with accuracy 99.0%
 
-# CIFAR-10 example
+## CIFAR-10 example
 
 ```
 ./example/cifar/cifar
@@ -65,7 +63,7 @@ Network trains 20 epochs with accuracy 99.0%
 
 https://machinelearningmastery.com/how-to-develop-a-cnn-from-scratch-for-cifar-10-photo-classification/
 
-# Build Linux-based docker container with CUDA support
+## Build Linux-based docker container with CUDA support
 
 ```
 docker build -t cuda-dev -f cuda-dev.Dockerfile .
@@ -81,7 +79,7 @@ Run container:
 docker run --gpus all -it --rm -v $PWD:/home/nn -w /home/nn cuda-dev /bin/bash
 ```
 
-# Useful links
+## Useful links
 
 tiny-dnn is a good implementation of deep learning algorithms, but I couldn't get it work with CUDA:
 * https://github.com/tiny-dnn/tiny-dnn
