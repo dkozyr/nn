@@ -57,7 +57,7 @@ public:
         _layers.emplace_back(new layer::BatchNorm<T>(neurons, name));
     }
 
-    void AddMaxPool(const Shape& input, const Shape& window, const size_t stride, const std::string& name = "") {
+    void AddMaxPool(const Shape& input, const Shape& window, const size_t stride = 1, const std::string& name = "") {
         const auto neurons = _layers.back()->GetOutNeurons();
         _layers.emplace_back(new layer::MaxPool<T>(input, window, stride, name));
     }

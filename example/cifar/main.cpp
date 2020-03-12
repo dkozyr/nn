@@ -29,13 +29,13 @@ int main(int argc, char**argv) {
     net.AddBatchNorm();
     net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{64,30,30}, Shape{64,2,2});
+    net.AddConv3D(Shape{32,30,30}, Shape{32,2,2});
     net.AddReLu();
-    net.AddMaxPool(Shape{64,29,29}, Shape{2,2}, 1);
+    net.AddMaxPool(Shape{32,29,29}, Shape{2,2}, 1);
     net.AddBatchNorm();
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(64*28*28, 256);
+    net.AddLinearLayer(32*28*28, 256);
     net.AddTanh();
     net.AddDropout(0.1);
 
@@ -48,7 +48,7 @@ int main(int argc, char**argv) {
     net.AddCrossEntropy(10);
 
     const float learning_rate = 0.1;
-    size_t batch = 256;
+    const size_t batch = 256;
     for(size_t epoch = 1; epoch <= 50; ++epoch) {
         const float loss = net.Train(X_train, Y_train, learning_rate, batch);
         cout << "epoch: " << epoch << ", error: " << loss;
@@ -57,14 +57,7 @@ int main(int argc, char**argv) {
             cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
         }
         cout << endl;
-
-        // if(batch > 16) {
-        //     batch /= 2;
-        // }
     }
-    cout << "Accuracy train: " << net.Accuracy(X_train, Y_train)
-         << ", CV: " << net.Accuracy(X_cv, Y_cv)
-         << endl;
     return 0;
 }
 

@@ -9,9 +9,7 @@ Matrix<Cuda> ReadMnistImage(const std::string& path);
 Matrix<Cuda> ReadMnistLabel(const std::string& path);
 inline std::string ReadFileToString(const std::string& path);
 
-int main(int argc, char**argv) {
-    cout << "Cuda is " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
-
+void Run() {
     auto X_train = ReadMnistImage("../data/mnist/train-images-idx3-ubyte");
     auto Y_train = ReadMnistLabel("../data/mnist/train-labels-idx1-ubyte");
     cout << "Train images: " << X_train.GetShape().rows << endl;
@@ -22,18 +20,18 @@ int main(int argc, char**argv) {
 
     Network<Cuda> net("mnist");
 
-    net.AddConv3D(Shape{28,28}, Shape{8,2,2});
+    net.AddConv3D(Shape{28,28}, Shape{32,5,5});
     net.AddReLu();
-    net.AddMaxPool(Shape{8,27,27}, Shape{2,2}, 1);
+    net.AddMaxPool(Shape{32,24,24}, Shape{2,2});
     net.AddDropout(0.2);
 
-    net.AddConv3D(Shape{8,26,26}, Shape{4,2,2});
+    net.AddConv3D(Shape{32,23,23}, Shape{64,5,5});
     net.AddReLu();
-    net.AddMaxPool(Shape{4,25,25}, Shape{2,2}, 1);
+    net.AddMaxPool(Shape{64,19,19}, Shape{2,2});
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(4*24*24, 512);
-    net.AddTanh();
+    net.AddLinearLayer(64*18*18, 512);
+    net.AddReLu();
     net.AddDropout(0.1);
 
     net.AddLinearLayer(512, 10);
@@ -41,7 +39,7 @@ int main(int argc, char**argv) {
     net.AddCrossEntropy(10);
 
     const float learning_rate = 0.1;
-    for(size_t epoch = 1; epoch <= 100; ++epoch) {
+    for(size_t epoch = 1; epoch <= 20; ++epoch) {
         const float loss = net.Train(X_train, Y_train, learning_rate, 16);
         cout << "epoch: " << epoch << ", error: " << loss;
         if(epoch % 10 == 0) {
@@ -50,8 +48,15 @@ int main(int argc, char**argv) {
         }
         cout << endl;
     }
-    cout << "Accuracy: " << net.Accuracy(X_train, Y_train)
-         << ", cv: " << net.Accuracy(X_cv, Y_cv) << endl;
+}
+
+int main(int argc, char**argv) {
+    cout << "Cuda is " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
+    try {
+        Run();
+    } catch(const char* error) {
+        cout << "Error: " << error << endl;
+    }
     return 0;
 }
 
@@ -61,7 +66,7 @@ Matrix<Cuda> ReadMnistImage(const std::string& path) {
     const auto W = ReadUint32(data, 8);
     const auto H = ReadUint32(data, 12);
     if((ReadUint32(data, 0) != 0x0803) || (W != 28) || (H != 28)) {
-        throw "wrong format";
+        throw "wrong mnist file format";
     }
     size_t offset = 16;
 
@@ -79,7 +84,7 @@ Matrix<Cuda> ReadMnistLabel(const std::string& path) {
     const auto data = ReadFileToString(path);
     const auto N = ReadUint32(data, 4);
     if((ReadUint32(data, 0) != 0x0801)) {
-        throw "wrong format";
+        throw "wrong mnist file format";
     }
     size_t offset = 8;
 
