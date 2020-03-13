@@ -30,6 +30,8 @@ bash ./download.sh
 
 ## MNIST example
 
+Network trains 20 epochs with accuracy 99.0%
+
 Convolutional neural network architecture:
 ```
 Network<Cuda> net("mnist");
@@ -53,15 +55,34 @@ net.AddSoftmax();
 net.AddCrossEntropy(10);
 ```
 
-Network trains 20 epochs with accuracy 99.0%
-
 ## CIFAR-10 example
 
+Convolutional neural network trains 50 epochs with accuracy 61.0%
+
+Network architecture:
 ```
-./example/cifar/cifar
+Network<Cuda> net("cifar");
+
+net.AddConv3D(Shape{3,32,32}, Shape{16,5,5});
+net.AddReLu();
+net.AddMaxPool(Shape{16,28,28}, Shape{2,2});
+net.AddDropout(0.2);
+
+net.AddConv3D(Shape{16,27,27}, Shape{32,5,5});
+net.AddReLu();
+net.AddMaxPool(Shape{32,23,23}, Shape{2,2});
+net.AddDropout(0.2);
+
+net.AddLinearLayer(32*22*22, 256);
+net.AddReLu();
+net.AddDropout(0.2);
+
+net.AddLinearLayer(256, 10);
+net.AddSoftmax();
+net.AddCrossEntropy(10);
 ```
 
-https://machinelearningmastery.com/how-to-develop-a-cnn-from-scratch-for-cifar-10-photo-classification/
+Neural network size could be expanded to achive better accuracy, but training speed slows down dramatically.
 
 ## Build Linux-based docker container with CUDA support
 
@@ -100,3 +121,6 @@ CUDA Compatibility:
 
 Adam Optimizer:
 * https://github.com/maziarraissi/backprop/blob/master/CppSimpleNN.cpp
+
+How to Develop a CNN From Scratch for CIFAR-10 Photo Classification:
+* https://machinelearningmastery.com/how-to-develop-a-cnn-from-scratch-for-cifar-10-photo-classification/

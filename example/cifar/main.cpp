@@ -8,9 +8,7 @@ using namespace nn;
 void ReadCifarData(const std::string& path, Matrix<Cuda>& X, Matrix<Cuda>& Y, size_t idx);
 inline std::string ReadFileToString(const std::string& path);
 
-int main(int argc, char**argv) {
-    cout << "Cuda: " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
-
+void Run() {
     Matrix<Cuda> X_train(Shape{50000, 3*32*32}), Y_train(Shape{50000, 10});
     for(size_t i = 1; i <= 5; ++i) {
         const std::string path = "../data/cifar-10-batches-bin/data_batch_" + to_string(i) + ".bin";
@@ -23,32 +21,27 @@ int main(int argc, char**argv) {
     cout << "CV images: " << X_cv.GetShape().rows << endl;
 
     Network<Cuda> net("cifar");
-    net.AddConv3D(Shape{3,32,32}, Shape{32,2,2});
-    net.AddReLu();
-    net.AddMaxPool(Shape{32,31,31}, Shape{2,2}, 1);
-    net.AddBatchNorm();
-    net.AddDropout(0.3);
 
-    net.AddConv3D(Shape{32,30,30}, Shape{32,2,2});
+    net.AddConv3D(Shape{3,32,32}, Shape{16,5,5});
     net.AddReLu();
-    net.AddMaxPool(Shape{32,29,29}, Shape{2,2}, 1);
-    net.AddBatchNorm();
+    net.AddMaxPool(Shape{16,28,28}, Shape{2,2});
     net.AddDropout(0.2);
 
-    net.AddLinearLayer(32*28*28, 256);
-    net.AddTanh();
-    net.AddDropout(0.1);
+    net.AddConv3D(Shape{16,27,27}, Shape{32,5,5});
+    net.AddReLu();
+    net.AddMaxPool(Shape{32,23,23}, Shape{2,2});
+    net.AddDropout(0.2);
 
-    net.AddLinearLayer(256, 256);
-    net.AddTanh();
-    net.AddDropout(0.1);
+    net.AddLinearLayer(32*22*22, 256);
+    net.AddReLu();
+    net.AddDropout(0.2);
 
     net.AddLinearLayer(256, 10);
     net.AddSoftmax();
     net.AddCrossEntropy(10);
 
     const float learning_rate = 0.1;
-    const size_t batch = 256;
+    const size_t batch = 64;
     for(size_t epoch = 1; epoch <= 50; ++epoch) {
         const float loss = net.Train(X_train, Y_train, learning_rate, batch);
         cout << "epoch: " << epoch << ", error: " << loss;
@@ -57,6 +50,16 @@ int main(int argc, char**argv) {
             cout << ", CV: " << net.Accuracy(X_cv, Y_cv);
         }
         cout << endl;
+        // net.Save("cifar.dat");
+    }
+}
+
+int main(int argc, char**argv) {
+    cout << "Cuda is " << (IsCudaEnabled() ? "ON" : "OFF") << endl;
+    try {
+        Run();
+    } catch(const char* error) {
+        cout << "Error: " << error << endl;
     }
     return 0;
 }
